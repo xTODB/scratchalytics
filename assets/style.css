@@ -1,0 +1,40 @@
+:root { --bg: #1e2026; --panel: #2a2c33; --line: #444854; --text: #eee; --muted: #a3a6b0; --accent: #ffaa33; --up: #4cd964; --blue: #5aa0ff; }
+* { box-sizing: border-box; }
+body { margin: 0; font-family: -apple-system, Helvetica, Arial, sans-serif; background: var(--bg); color: var(--text); }
+a { color: var(--accent); }
+.sa-top { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 0.8rem 1.2rem; background: #14161a; border-bottom: 1px solid var(--line); }
+.sa-brand { font-size: 1.3rem; font-weight: 700; color: #fff; text-decoration: none; }
+.sa-nav a { color: var(--muted); text-decoration: none; margin-left: 1rem; }
+.sa-nav a.on, .sa-nav a:hover { color: #fff; }
+.sa-main { max-width: 860px; margin: 0 auto; padding: 1.4rem 1.2rem 3rem; }
+.sa-main h1 { margin: 0 0 0.4rem; font-size: 1.6rem; }
+.sa-muted { color: var(--muted); }
+.sa-up { color: var(--up); }
+.sa-search { display: flex; gap: 0.6rem; flex-wrap: wrap; margin: 1rem 0 1.4rem; }
+.sa-search input { flex: 1 1 10rem; height: 2.6rem; padding: 0 0.8rem; border-radius: 8px; border: 1px solid var(--line); background: var(--panel); color: var(--text); font-size: 1rem; }
+.sa-search button { height: 2.6rem; padding: 0 1.2rem; border: 0; border-radius: 8px; background: var(--accent); color: #111; font-weight: 600; font-size: 1rem; cursor: pointer; }
+.sa-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+.sa-card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 1rem 1.2rem; margin: 0 0 1rem; }
+.sa-card h2 { margin: 0 0 0.6rem; font-size: 1.1rem; }
+.sa-card ol { margin: 0; padding-left: 1.4rem; }
+.sa-card li { padding: 0.15rem 0; }
+.sa-head { display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem; }
+.sa-head p { margin: 0.2rem 0 0; }
+.sa-pic { width: 64px; height: 64px; border-radius: 50%; background: var(--panel); object-fit: cover; flex: none; }
+.sa-stats { display: flex; flex-wrap: wrap; gap: 0.8rem; margin-bottom: 1rem; }
+.sa-stat { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 0.7rem 1rem; min-width: 8rem; display: flex; flex-direction: column; }
+.sa-stat span { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); }
+.sa-stat b { font-size: 1.4rem; }
+.sa-cmp { width: 100%; border-collapse: collapse; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; margin-bottom: 1rem; }
+.sa-cmp th, .sa-cmp td { padding: 0.6rem 0.9rem; text-align: right; border-bottom: 1px solid var(--line); }
+.sa-cmp th:first-child, .sa-cmp td:first-child { text-align: left; color: var(--muted); }
+.sa-cmp th.c1 a { color: var(--accent); } .sa-cmp th.c2 a { color: var(--blue); }
+.sa-graph { width: 100%; height: auto; display: block; }
+.sa-grid { stroke: var(--line); stroke-width: 1; }
+.sa-axis { fill: var(--muted); font-size: 11px; }
+.sa-line { fill: none; stroke-width: 2; stroke-linejoin: round; }
+.sa-l1 { stroke: var(--accent); } .sa-l2 { stroke: var(--blue); }
+.sa-key { display: inline-block; width: 0.8rem; height: 0.8rem; border-radius: 2px; margin-right: 0.3rem; vertical-align: -1px; }
+.sa-key.k1 { background: var(--accent); } .sa-key.k2 { background: var(--blue); margin-left: 1rem; }
+.sa-foot { text-align: center; color: var(--muted); font-size: 0.85rem; padding: 1.5rem 1rem 2rem; }
+@media (max-width: 640px) { .sa-cols { grid-template-columns: 1fr; } }
