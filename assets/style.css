@@ -40,3 +40,10 @@ a { color: var(--accent); }
 .sa-key.k1 { background: var(--accent); } .sa-key.k2 { background: var(--blue); margin-left: 1rem; }
 .sa-foot { text-align: center; color: var(--muted); font-size: 0.85rem; padding: 1.5rem 1rem 2rem; }
 @media (max-width: 640px) { .sa-cols { grid-template-columns: 1fr; } }
+.sa-tbl { width: 100%; border-collapse: collapse; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; margin-bottom: 1rem; }
+.sa-tbl th, .sa-tbl td { padding: 0.55rem 0.8rem; text-align: right; border-bottom: 1px solid var(--line); }
+.sa-tbl th { color: var(--muted); font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.06em; }
+.sa-tbl th:nth-child(2), .sa-tbl td:nth-child(2) { text-align: left; width: 100%; overflow-wrap: anywhere; }
+.sa-tbl td:first-child, .sa-tbl th:first-child { color: var(--muted); }
+.sa-pager { display: flex; justify-content: space-between; gap: 1rem; margin-bottom: 1rem; }
+.sa-head h1 { overflow-wrap: anywhere; }
