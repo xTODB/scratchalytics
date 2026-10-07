@@ -7,6 +7,10 @@ $pageTitle = 'Compare Scratchers - ' . SITE_NAME;
 $da = $a !== '' ? getUserBundle($a) : null;
 $db = $b !== '' ? getUserBundle($b) : null;
 $ua = $da['user'] ?? null; $ub = $db['user'] ?? null;
+if ($ua && $ub) {
+    $pageTitle = $ua['username'] . ' vs ' . $ub['username'] . ' - ' . SITE_NAME;
+    $pageDesc = $ua['username'] . ' (' . number_format((int)$ua['followers']) . ' followers) vs ' . $ub['username'] . ' (' . number_format((int)$ub['followers']) . ' followers). Who catches up, and when?';
+}
 require __DIR__ . '/includes/layout-top.php';
 ?>
 <h1>Compare two Scratchers</h1>
