@@ -4,8 +4,7 @@ $a = trim((string)($_GET['a'] ?? ''));
 $b = trim((string)($_GET['b'] ?? ''));
 $navActive = 'compare';
 $pageTitle = 'Compare Scratchers - ' . SITE_NAME;
-$da = $a !== '' ? getUserBundle($a) : null;
-$db = $b !== '' ? getUserBundle($b) : null;
+[$da, $db] = ($a !== '' && $b !== '') ? getUserBundles($a, $b) : [$a !== '' ? getUserBundle($a) : null, $b !== '' ? getUserBundle($b) : null];
 $ua = $da['user'] ?? null; $ub = $db['user'] ?? null;
 if ($ua && $ub) {
     $pageTitle = $ua['username'] . ' vs ' . $ub['username'] . ' - ' . SITE_NAME;
