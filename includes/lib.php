@@ -40,6 +40,25 @@ function getUserBundle(string $name): ?array {
     return censusGet('/users/' . rawurlencode($name) . '/history?days=90');
 }
 
+// One studio with its rank (no daily history exists for studios, only the 2-day change). Null if not a valid id or not tracked.
+function getStudio(string $id): ?array {
+    if (!preg_match('/^\d{1,10}$/', $id)) return null;
+    $j = censusGet('/studios/' . $id);
+    return $j['studio'] ?? null;
+}
+
+// One page of the studio leaderboard, or of a title search when $q is set. Returns ['paging'=>..., 'results'=>[...]] or null.
+function getStudiosPage(int $page, string $q = '', int $limit = 25): ?array {
+    $qs = 'page=' . $page . '&limit=' . $limit . ($q !== '' ? '&q=' . rawurlencode($q) : '');
+    return censusGet('/studios?' . $qs);
+}
+
+// "+12" / "-3" / "0" for a change value; "-" when null.
+function signedNum(?int $n): string {
+    if ($n === null) return '-';
+    return ($n > 0 ? '+' : ($n < 0 ? '-' : '')) . number_format(abs($n));
+}
+
 // Straight-line pace from the first to the last saved point: followers per day, or null with under 2 days of data.
 function pacePerDay(array $hist): ?float {
     if (count($hist) < 2) return null;
