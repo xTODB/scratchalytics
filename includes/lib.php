@@ -13,31 +13,100 @@ function e(?string $s): string { return htmlspecialchars((string)$s, ENT_QUOTES,
 function isValidName(string $n): bool { return (bool)preg_match('/^[A-Za-z0-9_-]{3,20}$/', $n); }
 function url(string $p = ''): string { return SITE_BASE . '/' . ltrim($p, '/'); }
 
-// GET one Census API path (e.g. "/users/griffpatch/history?days=90"). Returns decoded JSON, or null on any failure.
-// Answers are cached in a temp file for CENSUS_CACHE_SEC so a busy page costs the Census API one request per window.
-function censusGet(string $path): ?array {
-    $file = sys_get_temp_dir() . '/scratchalytics_' . md5(CENSUS_API_BASE . $path);
-    if (is_file($file) && time() - (int)@filemtime($file) < CENSUS_CACHE_SEC) {
-        $c = json_decode((string)@file_get_contents($file), true);
-        if (is_array($c)) return $c;
+// Census answers are cached in temp files. Speed rules:
+//  - fresh copy (CENSUS_CACHE_SEC, or 15 minutes for the lists/stats that change slowly): used as is
+//  - stale copy (up to CENSUS_STALE_SEC): shown instantly, and refreshed AFTER the page is sent
+//  - no copy: fetched now, all the page's calls in parallel (not one after another)
+//  - a failed call is remembered for 30s so a slow Census does not stall every visit
+defined('CENSUS_STALE_SEC') || define('CENSUS_STALE_SEC', 86400);
+
+function censusTtl(string $path): int {
+    $slow = strpos($path, '/users?') === 0 || strpos($path, '/growth') === 0 || strpos($path, '/stats') === 0 || strpos($path, '/studios?') === 0;
+    return $slow ? max((int)CENSUS_CACHE_SEC, 900) : (int)CENSUS_CACHE_SEC;
+}
+function censusFile(string $path): string { return sys_get_temp_dir() . '/scratchalytics_' . md5(CENSUS_API_BASE . $path); }
+
+// Parallel GET of several API paths. Returns path => ['code'=>int,'body'=>string|false].
+function censusFetchNow(array $paths): array {
+    $mh = curl_multi_init();
+    $hs = [];
+    foreach ($paths as $p) {
+        $ch = curl_init(CENSUS_API_BASE . $p);
+        curl_setopt_array($ch, [CURLOPT_RETURNTRANSFER => true, CURLOPT_TIMEOUT => 6, CURLOPT_CONNECTTIMEOUT => 3,
+            CURLOPT_FOLLOWLOCATION => true, CURLOPT_ENCODING => '', CURLOPT_USERAGENT => SITE_NAME . ' (ScratchNews Site)',
+            CURLOPT_HTTPHEADER => CENSUS_API_KEY !== '' ? ['X-Census-Key: ' . CENSUS_API_KEY] : []]);
+        curl_multi_add_handle($mh, $ch);
+        $hs[$p] = $ch;
     }
-    $ch = curl_init(CENSUS_API_BASE . $path);
-    curl_setopt_array($ch, [CURLOPT_RETURNTRANSFER => true, CURLOPT_TIMEOUT => 8, CURLOPT_CONNECTTIMEOUT => 4,
-        CURLOPT_FOLLOWLOCATION => true, CURLOPT_USERAGENT => SITE_NAME . ' (ScratchNews Site)',
-        CURLOPT_HTTPHEADER => CENSUS_API_KEY !== '' ? ['X-Census-Key: ' . CENSUS_API_KEY] : []]);
-    $body = curl_exec($ch);
-    $code = (int)curl_getinfo($ch, CURLINFO_RESPONSE_CODE);
-    curl_close($ch);
-    if ($body === false || $code !== 200) return null;
-    $j = json_decode($body, true);
-    if (!is_array($j)) return null;
-    @file_put_contents($file, $body, LOCK_EX);
-    return $j;
+    do {
+        $st = curl_multi_exec($mh, $running);
+        if ($running) curl_multi_select($mh, 1.0);
+    } while ($running && $st === CURLM_OK);
+    $out = [];
+    foreach ($hs as $p => $ch) {
+        $out[$p] = ['code' => (int)curl_getinfo($ch, CURLINFO_RESPONSE_CODE), 'body' => curl_multi_getcontent($ch)];
+        curl_multi_remove_handle($mh, $ch);
+        curl_close($ch);
+    }
+    curl_multi_close($mh);
+    return $out;
+}
+
+// Fetches paths, stores good answers, marks failures. Returns path => decoded array|null.
+function censusFetchAndStore(array $paths): array {
+    $res = [];
+    foreach (censusFetchNow($paths) as $p => $r) {
+        $j = ($r['body'] !== false && $r['code'] === 200) ? json_decode((string)$r['body'], true) : null;
+        if (is_array($j)) { @file_put_contents(censusFile($p), $r['body'], LOCK_EX); $res[$p] = $j; }
+        else { @touch(censusFile($p) . '.neg'); $res[$p] = null; }
+    }
+    return $res;
+}
+
+// Several API paths at once: ['/stats', '/users?limit=10'] => ['/stats' => [...], ...] (null for a failed one).
+function censusGetMany(array $paths): array {
+    $out = []; $need = []; $later = [];
+    foreach ($paths as $p) {
+        $f = censusFile($p);
+        $age = is_file($f) ? time() - (int)@filemtime($f) : null;
+        $cached = $age !== null ? json_decode((string)@file_get_contents($f), true) : null;
+        if (is_array($cached) && $age < censusTtl($p)) { $out[$p] = $cached; continue; }
+        if (is_array($cached) && $age < CENSUS_STALE_SEC) { $out[$p] = $cached; $later[] = $p; continue; }
+        if (is_file($f . '.neg') && time() - (int)@filemtime($f . '.neg') < 30) { $out[$p] = null; continue; }
+        $need[] = $p;
+    }
+    if ($need) foreach (censusFetchAndStore($need) as $p => $j) $out[$p] = $j;
+    if ($later) {
+        register_shutdown_function(function () use ($later) {
+            if (function_exists('fastcgi_finish_request')) @fastcgi_finish_request();
+            elseif (function_exists('litespeed_finish_request')) @litespeed_finish_request();
+            $todo = [];
+            foreach ($later as $p) {
+                $lock = @fopen(censusFile($p) . '.lock', 'c');
+                if ($lock && flock($lock, LOCK_EX | LOCK_NB)) $todo[$p] = $lock; // one refresher per path
+            }
+            if ($todo) censusFetchAndStore(array_keys($todo));
+        });
+    }
+    return $out;
+}
+
+// GET one Census API path (e.g. "/users/griffpatch/history?days=90"). Returns decoded JSON, or null on any failure.
+function censusGet(string $path): ?array {
+    return censusGetMany([$path])[$path] ?? null;
 }
 
 function getUserBundle(string $name): ?array {
     if (!isValidName($name)) return null;
     return censusGet('/users/' . rawurlencode($name) . '/history?days=90');
+}
+
+// Two users at once (compare page): both API calls run in parallel.
+function getUserBundles(string $a, string $b): array {
+    $pa = isValidName($a) ? '/users/' . rawurlencode($a) . '/history?days=90' : null;
+    $pb = isValidName($b) ? '/users/' . rawurlencode($b) . '/history?days=90' : null;
+    $r = censusGetMany(array_values(array_filter([$pa, $pb])));
+    return [$pa ? ($r[$pa] ?? null) : null, $pb ? ($r[$pb] ?? null) : null];
 }
 
 // One studio with its rank (no daily history exists for studios, only the 2-day change). Null if not a valid id or not tracked.
