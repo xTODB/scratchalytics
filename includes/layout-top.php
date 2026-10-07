@@ -1,5 +1,5 @@
 <?php
-// Set before including: $pageTitle, $pageDesc, $navActive ('home'|'compare'|'about'|''), optional $ogImage (path under the site, default share card)
+// Set before including: $pageTitle, $pageDesc, $navActive ('home'|'compare'|'studios'|'about'|''), optional $ogImage (path under the site, default share card)
 require_once __DIR__ . '/lib.php';
 $pageTitle = $pageTitle ?? SITE_NAME;
 $pageDesc = $pageDesc ?? 'Scratch statistics: ranks, growth and comparisons.';
@@ -7,7 +7,7 @@ $navActive = $navActive ?? '';
 $ogImage = $ogImage ?? 'assets/og-default.png';
 $origin = defined('SITE_ORIGIN') ? SITE_ORIGIN : 'https://scratchnews.net';
 $css = (int)@filemtime(__DIR__ . '/../assets/style.css');
-$nav = ['home' => ['', 'Home'], 'compare' => ['compare', 'Compare'], 'about' => ['about', 'About']];
+$nav = ['home' => ['', 'Home'], 'compare' => ['compare', 'Compare'], 'studios' => ['studios', 'Studios'], 'about' => ['about', 'About']];
 ?>
 <!DOCTYPE html>
 <html lang="en">
