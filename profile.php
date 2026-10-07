@@ -5,6 +5,7 @@ $d = getUserBundle($name);
 $u = $d['user'] ?? null;
 $navActive = 'home';
 $pageTitle = ($u ? $u['username'] . ' - ' : '') . SITE_NAME;
+if ($u) $pageDesc = $u['username'] . ' has ' . number_format((int)$u['followers']) . ' followers on Scratch (rank #' . number_format((int)$u['rank']) . '). See their growth graph and projection.';
 if (!$u) http_response_code(404);
 require __DIR__ . '/includes/layout-top.php';
 if (!$u): ?>
