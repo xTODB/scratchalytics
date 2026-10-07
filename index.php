@@ -2,9 +2,10 @@
 require_once __DIR__ . '/includes/lib.php';
 $pageTitle = SITE_NAME . ' - Scratch statistics';
 $navActive = 'home';
-$top = censusGet('/users?limit=10');
-$gain = censusGet('/growth?type=users&dir=up&limit=10');
-$stats = censusGet('/stats');
+$home = censusGetMany(['/users?limit=10', '/growth?type=users&dir=up&limit=10', '/stats']); // one parallel round
+$top = $home['/users?limit=10'];
+$gain = $home['/growth?type=users&dir=up&limit=10'];
+$stats = $home['/stats'];
 require __DIR__ . '/includes/layout-top.php';
 ?>
 <h1>Look up any Scratcher</h1>
