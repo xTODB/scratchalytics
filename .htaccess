@@ -3,6 +3,8 @@ RewriteRule ^u/([^/]+)/?$ profile.php?u=$1 [L,QSA]
 RewriteRule ^compare/([^/]+)/?$ compare.php?a=$1 [L,QSA]
 RewriteRule ^compare/?$ compare.php [L,QSA]
 RewriteRule ^about/?$ about.php [L,QSA]
+RewriteRule ^studio/([0-9]+)/?$ studio.php?id=$1 [L,QSA]
+RewriteRule ^studios/?$ top-studios.php [L,QSA]
 # Keep config out of the web even if it is ever uploaded here
 <Files "config.php">
     Require all denied
