@@ -3,7 +3,9 @@
 body { margin: 0; font-family: -apple-system, Helvetica, Arial, sans-serif; background: var(--bg); color: var(--text); }
 a { color: var(--accent); }
 .sa-top { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 0.8rem 1.2rem; background: #14161a; border-bottom: 1px solid var(--line); }
-.sa-brand { font-size: 1.3rem; font-weight: 700; color: #fff; text-decoration: none; }
+@font-face { font-family: 'Scratch'; src: url('/assets/BLACKBOYSONMOPEDS.ttf') format('truetype'); font-display: swap; }
+.sa-brand { display: flex; align-items: center; gap: 0.55rem; font-family: 'Scratch', -apple-system, Helvetica, Arial, sans-serif; font-size: 1.5rem; font-weight: 400; color: #fff; text-decoration: none; -webkit-text-stroke: 3px #ff9900; paint-order: stroke fill; }
+.sa-logo { width: 28px; height: 28px; flex: none; }
 .sa-nav a { color: var(--muted); text-decoration: none; margin-left: 1rem; }
 .sa-nav a.on, .sa-nav a:hover { color: #fff; }
 .sa-main { max-width: 860px; margin: 0 auto; padding: 1.4rem 1.2rem 3rem; }
